@@ -1,0 +1,10 @@
+## Interface: 30300
+## Title: Scrap Cleaner
+## Notes: Deletes junk items as your bags get full, keeping them free for more loot.
+## Author: Jaliborc (João Cardoso), Viper
+
+## X-Category: Inventory
+## X-License: GNU General Public License Version 3
+## Dependencies: Scrap
+
+Scrap_Cleaner.lua
