@@ -592,6 +592,15 @@ function Scrap:AuctionJunkFilter(itemID)
 			elseif itemSubType == STR_SC_TRADEGOODS_MEAT then
 				return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_COOKING}, auctionItemLevelCap)
 			end
+		elseif itemType == STR_CLASS_RECIPES then
+			if itemSubType ~= STR_SC_RECIPES_BOOK then
+				return self:NoProfessionsOrLowLevel(itemLevel, {itemSubType}, auctionItemLevelCap)
+			else
+				--Book of Glyph Mastery
+				if itemID == 45912 then
+					return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_INSCRIPTION}, 1)
+				end
+			end
 		end
 	end
 	
@@ -613,7 +622,7 @@ function math_map(value, explow, exphigh, outlow, outhigh)
 end
 
 function Scrap:MapTradeSkillLevelToTradeSkillItemLevel(tsl)
-	return math_map(tsl, 0, 450, 10, 72)
+	return math_map(tsl, 0, 450, 10, 80)
 end
 
 function Scrap:IsLowLevelTradeSkillItem(level, tradeskillname, diff)
@@ -647,6 +656,9 @@ function Scrap:CustomFilter(itemID)
 	local value = itemValue and itemValue > 0
 	local normalizedLevel = max(itemReqLevel or 0, itemLevel or 0)
 	
+	--Level Diff Cap for Vendor Sell
+	local tradegoodstradercap = 15
+	
 	if value then
 		if not self:BetterQuality(itemID, 'gray') then
 			return not equipment or self:HighLevelItem(itemReqLevel)
@@ -672,7 +684,6 @@ function Scrap:CustomFilter(itemID)
 			end
 		--TODO:Cache Profession Levels once and reuse through out the function
 		elseif itemType == STR_CLASS_TRADEGOODS then
-			local tradegoodstradercap = 15
 			if itemSubType == STR_SC_TRADEGOODS_HERB then
 				if self:HasProfession(STR_TS_HERBALISM) and self:IsLowLevelTradeSkillItem(itemLevel,STR_TS_HERBALISM, tradegoodstradercap) then
 					return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_ALCHEMY,STR_TS_INSCRIPTION}, tradegoodstradercap)
@@ -695,7 +706,9 @@ function Scrap:CustomFilter(itemID)
 				return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_COOKING}, tradegoodstradercap)
 			end
 		elseif itemType == STR_CLASS_RECIPES then
-			return self:NoProfessionsOrLowLevel(itemLevel, {itemSubType}, 5)
+			if itemSubType ~= STR_SC_RECIPES_BOOK then
+				return self:NoProfessionsOrLowLevel(itemLevel, {itemSubType}, tradegoodstradercap)
+			end
 		end
 	end
 	
