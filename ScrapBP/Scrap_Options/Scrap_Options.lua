@@ -50,7 +50,11 @@ function Options:ToggleDropdown(anchor)
     	},
 		{
 			text = 'Reset Junk List',
-			func = function() Scrap:ReloadList(true) end
+			func = function() Scrap:ReloadList(true, false) end
+		},
+		{
+			text = 'Drop False from Junk List',
+			func = function() Scrap:ReloadList(false, true) end
 		}
 	}
 

@@ -25,11 +25,20 @@ function ItemSlot:SetBorderQuality(...)
 	local link = select(7, self:GetItemSlotInfo())
 	local function CreateIcon(slot)
 		local icon = slot:CreateTexture(nil, 'OVERLAY')
-		icon:SetTexture('Interface\\Buttons\\UI-GroupLoot-Coin-Up')
+		icon:SetTexture('Interface\\MONEYFRAME\\UI-CopperIcon')
 		icon:SetPoint('TOPLEFT', 2, -2)
 		icon:SetSize(15, 15)
 
 		slot.scrapIcon = icon
+		return icon
+	end
+	local function CreateAucIcon(slot)
+		local icon = slot:CreateTexture(nil, 'OVERLAY')
+		icon:SetTexture('Interface\\MONEYFRAME\\UI-GoldIcon')
+		icon:SetPoint('TOPLEFT', 2, -2)
+		icon:SetSize(15, 15)
+		
+		slot.scrapAucIcon = icon
 		return icon
 	end
 	local function SetShown(element, shown)
@@ -40,9 +49,11 @@ function ItemSlot:SetBorderQuality(...)
 		end
 	end
 	local icon = self.scrapIcon or CreateIcon(self)
+	local aucIcon = self.scrapAucIcon or CreateAucIcon(self)
 	if link then
 		local id = tonumber(strmatch(link, 'item:(%d+)'))
 		SetShown(icon, Scrap:IsJunk(id))
+		SetShown(aucIcon, Scrap:IsAuctionableJunk(id))
 		if Scrap:IsJunk(id) then
 			self.questBorder:Hide()
 			self.border:SetVertexColor(20, 20, 20, self:GetHighlightAlpha())
@@ -51,6 +62,7 @@ function ItemSlot:SetBorderQuality(...)
 		end
 	else
 		SetShown(icon, false)
+		SetShown(aucIcon, false)
 	end
 	
 	SetQuality(self, ...)
@@ -64,3 +76,4 @@ end
 
 hooksecurefunc(Scrap, 'ToggleJunk', UpdateBags)
 hooksecurefunc(Scrap, 'ReloadList', UpdateBags)
+hooksecurefunc(Scrap, 'EquipmentChangedEvent', UpdateBags)

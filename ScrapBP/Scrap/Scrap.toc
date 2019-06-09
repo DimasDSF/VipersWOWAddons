@@ -9,5 +9,4 @@
 ## SavedVariablesPerCharacter: Scrap_List
 ## SavedVariables: Scrap_AutoSell, Scrap_DelNotify, Scrap_Tutorials
 
-Proficiencies.lua
 Scrap.lua
