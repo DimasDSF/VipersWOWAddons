@@ -19,6 +19,7 @@ along with Scrap Cleaner. If not, see <http://www.gnu.org/licenses/>.
 
 local TimerFrame = CreateFrame('Frame')
 local NextTime = 0
+local Initialized = false
 
 local function CleanTrash()
 	local time = GetTime()
@@ -27,7 +28,7 @@ local function CleanTrash()
 		if MainMenuBarBackpackButton.freeSlots == 0 then
 			local bestValue, bestBag, bestSlot = 1/0
 			local itemLink, itemLink2
-			
+
 			for bag, slot, id in Scrap:IterateJunk() do
 				local bagType = select(2, GetContainerNumFreeSlots(bag))
 				if not bagType then
@@ -78,10 +79,12 @@ TimerFrame:SetScript("OnEvent", function(self,event)
 	if(event == "PLAYER_ENTERING_WORLD") then
 		if GetNetStats()~=nil then
 			NextTime = GetTime() + select(3, GetNetStats())*0.05
+			if not Initialized then
+				hooksecurefunc('MainMenuBarBackpackButton_UpdateFreeSlots', CleanTrash)
+				Initialized = true
+			end
 		end
 	end
 end)
 
 TimerFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-
-hooksecurefunc('MainMenuBarBackpackButton_UpdateFreeSlots', CleanTrash)
