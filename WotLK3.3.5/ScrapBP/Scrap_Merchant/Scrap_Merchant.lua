@@ -142,7 +142,7 @@ function Scrap:OnReceiveDrag()
 		local info = {}
 		  info[1],  info[2],     info[3],   info[4],      info[5],               info[6],              info[7],      info[8],              info[9],     info[10],  info[11] = GetItemInfo(itemID)
 		--strName, itemLink, itemQuality, itemLevel, itemReqLevel, itemClass(Consumable), itemSubClass(potion), itemMaxStack, itemEquipSlot(or ""), itemIconPath, itemPrice
-		ChatFrame1:AddMessage("ID:"..tostring(itemID)..", Quality: "..info[3]..", Class: "..info[6]..", Subclass: "..info[7]..", ItemLVL: "..info[4]..", ItemReqLVL: "..info[5]..".")
+		Scrap:PrintMessage("ID:"..tostring(itemID)..", Quality: "..info[3]..", Class: "..info[6]..", Subclass: "..info[7]..", ItemLVL: "..info[4]..", ItemReqLVL: "..info[5]..".")
 		--[[for i=1, 11 do
 			ChatFrame1:AddMessage(tostring(info[i]))
 		end

@@ -112,14 +112,16 @@ local function default_sorter(a, b)
 	local a_id = bag_ids[a]
 	local b_id = bag_ids[b]
 	
-	local a_scrap, b_scrap
+	local a_scrap, b_scrap, a_compactable, b_compactable
 	
 	if IsAddOnLoaded('Scrap') then
 		if a_id then
 			a_scrap = Scrap:IsJunk(a_id)
+			a_compactable = Scrap:IsCompactable(a_id, bag_stacks[a])
 		end
 		if b_id then
 			b_scrap = Scrap:IsJunk(b_id)
+			b_compactable = Scrap:IsCompactable(b_id, bag_stacks[b])
 		end
 	end
 	
@@ -137,6 +139,11 @@ local function default_sorter(a, b)
 			-- emptier stacks to the front
 			return a_count < b_count
 		end
+	end
+	
+	if IsAddOnLoaded('Scrap') then
+		if (b_compactable and not a_compactable) then return true end
+		if (a_compactable and not b_compactable) then return false end
 	end
 	
 	-- Conjured items to the back?

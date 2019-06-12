@@ -58,9 +58,9 @@ local function CleanTrash()
 			if bestBag and bestSlot then
 				PickupContainerItem(bestBag, bestSlot)
 				if Scrap_DelNotify then
-					ChatFrame1:AddMessage("|cffffd200[Scrap]:|rDeleted: "..itemLink[1].."x"..itemLink[2]..". Value: "..GetCoinTextureString(itemLink[3])..".")
+					Scrap:PrintMessage("|cffffd200[Scrap]:|rDeleted: "..itemLink[1].."x"..itemLink[2]..". Value: "..GetCoinTextureString(itemLink[3])..".")
 					if itemLink2 ~= nil then
-						ChatFrame1:AddMessage("|cffffd200[Scrap]:|rNext Lowest Price Item: "..itemLink2[1].."x"..itemLink2[2]..". Value: "..GetCoinTextureString(itemLink2[3])..".")
+						Scrap:PrintMessage("|cffffd200[Scrap]:|rNext Lowest Price Item: "..itemLink2[1].."x"..itemLink2[2]..". Value: "..GetCoinTextureString(itemLink2[3])..".")
 					end
 				end
 				DeleteCursorItem()

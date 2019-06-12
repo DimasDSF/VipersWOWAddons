@@ -102,6 +102,17 @@ function Scrap:DebugPrint(...)
 	ChatFrame1:AddMessage(...)
 end
 
+local OutputChats = {
+	1,
+	3
+}
+
+function Scrap:PrintMessage(...)
+	for _, i in pairs(OutputChats) do
+		_G['ChatFrame'..i]:AddMessage(...)
+	end
+end
+
 function Scrap:HasProfession(prof)
 	if tradeskillIDs[1] == nil and tradeskillIDs[2] == nil then
 		self:UpdateProfessionData()
@@ -572,6 +583,7 @@ function Scrap:AuctionJunkFilter(itemID)
 	local value = (auctionValue and auctionValue > 0)
 	local vendorValue = itemValue or 0
 	local normalizedLevel = max(itemReqLevel or 0, itemLevel or 0)
+	local normalizedLevelMin = (itemReqLevel and itemLevel and min(itemReqLevel, itemLevel)) or normalizedLevel
 	local auctionItemLevelCap = -5
 	local vendorauctionpricemultcap = 200
 	
@@ -579,17 +591,11 @@ function Scrap:AuctionJunkFilter(itemID)
 	if value and auctionValue - (vendorValue * 0.15) > vendorValue and (auctionValue / vendorValue) < vendorauctionpricemultcap then
 		if itemType == STR_CLASS_TRADEGOODS then
 			if itemSubType == STR_SC_TRADEGOODS_HERB then
-				--if self:HasProfession(STR_TS_HERBALISM) and self:IsLowLevelTradeSkillItem(itemLevel,STR_TS_HERBALISM, auctionItemLevelCap) then
-					return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_ALCHEMY,STR_TS_INSCRIPTION}, auctionItemLevelCap)
-				--end
+				return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_ALCHEMY,STR_TS_INSCRIPTION}, auctionItemLevelCap)
 			elseif itemSubType == STR_SC_TRADEGOODS_METALSTONE then
-				if self:HasProfession(STR_TS_MINING) and self:IsLowLevelTradeSkillItem(itemLevel,STR_TS_MINING, auctionItemLevelCap) then
-					return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_BLACKSMITHING,STR_TS_JEWELCRAFTING}, auctionItemLevelCap)
-				end
+				return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_BLACKSMITHING,STR_TS_JEWELCRAFTING}, auctionItemLevelCap)
 			elseif itemSubType == STR_SC_TRADEGOODS_LEATHER then
-				if self:HasProfession(STR_TS_SKINNING) and self:IsLowLevelTradeSkillItem(itemLevel,STR_TS_SKINNING, auctionItemLevelCap) then
-					return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_LEATHERWORKING}, auctionItemLevelCap)
-				end
+				return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_LEATHERWORKING}, auctionItemLevelCap)
 			elseif itemSubType == STR_SC_TRADEGOODS_CLOTH then
 				return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_CLOTHWORKING}, auctionItemLevelCap)
 			elseif itemSubType == STR_SC_TRADEGOODS_JEWEL then
@@ -605,7 +611,7 @@ function Scrap:AuctionJunkFilter(itemID)
 			else
 				--Book of Glyph Mastery
 				if itemID == 45912 then
-					return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_INSCRIPTION}, 1)
+					return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_INSCRIPTION}, 0)
 				end
 			end
 		elseif itemType == STR_CLASS_GEMS then
@@ -650,10 +656,9 @@ function Scrap:NoProfessionsOrLowLevel(level, profs, diff)
 		for _, prof in ipairs(profs) do
 			print("self:IsLowLevelTradeSkillItem(level, prof, diff) :"..tostring(self:IsLowLevelTradeSkillItem(level, prof, diff)))
 			if self:HasProfession(prof) and not self:IsLowLevelTradeSkillItem(level, prof, diff) then
-				return true
+				return false
 			end
 		end
-		return false
 	end
 	return true
 end
@@ -665,6 +670,7 @@ function Scrap:CustomFilter(itemID)
 	local equipment = itemType == STR_CLASS_ARMOR or itemType == STR_CLASS_WEAPON
 	local value = itemValue and itemValue > 0
 	local normalizedLevel = max(itemReqLevel or 0, itemLevel or 0)
+	local normalizedLevelMin = (itemReqLevel and itemLevel and min(itemReqLevel, itemLevel)) or normalizedLevel
 	
 	--Level Diff Cap for Vendor Sell
 	local tradegoodstradercap = 10
@@ -682,7 +688,7 @@ function Scrap:CustomFilter(itemID)
 			if itemSubType == STR_SC_CONSUMABLE_POTIONS then
 				return self:LowLevel(itemReqLevel, 20)
 			elseif itemSubType == STR_SC_CONSUMABLE_FOODDRINK then
-				return self:LowLevel(normalizedLevel, 10)
+				return self:LowLevel(normalizedLevelMin, math_map(UnitLevel('player'), 1, 80, 15, 5))
 			elseif itemSubType == STR_SC_CONSUMABLE_SCROLLS then
 				return self:LowLevel(itemReqLevel, 10)
 			elseif itemSubType == STR_SC_CONSUMABLE_BANDAGES then
@@ -825,7 +831,6 @@ function Scrap:IsLocked(bag, slot)
 	return select(3, GetContainerItemInfo(bag, slot))
 end
 
---[[
 local CompactibleItemList = {
 	[37700] = {endItem = {id = 35623}, fullstackcompact = true, compactItemCount = 10},
 	[37701] = {endItem = {id = 35624}, fullstackcompact = true, compactItemCount = 10},
@@ -834,7 +839,6 @@ local CompactibleItemList = {
 	[37704] = {endItem = {id = 35625}, fullstackcompact = true, compactItemCount = 10},
 	[37705] = {endItem = {id = 35622}, fullstackcompact = true, compactItemCount = 10}
 }
---]]
 
 --Unreliable method to find an item in inventory by ID
 --Finds the first stack and returns it/cannot be used to find a specific item stack
@@ -860,6 +864,19 @@ function Scrap:FindItemInInventory(itemID)
 		end
 	end
 	return {nil, nil}
+end
+
+function Scrap:IsCompactable(itemID, stack)
+	local _, itemLink, itemQuality, itemLevel, itemReqLevel, itemType, itemSubType, itemMaxStack, itemSlot, _, itemValue = GetItemInfo(itemID)
+	--strName, itemLink, itemQuality, itemLevel, itemReqLevel, itemType, itemSubType, itemMaxStack, itemEquipSlot(or ""), itemIconPath, itemValue
+	if itemID and stack then
+		if CompactibleItemList[itemID] then
+			local compItem = CompactibleItemList[itemID]
+			--local endItemID = compItem.endItem.id
+			--local _, _, _, _, _, _, _, endItemMaxStack = GetItemInfo(endItemID)
+			return (compItem.fullstackcompact and stack >= itemMaxStack) or stack >= compItem.compactItemCount
+		end
+	end
 end
 
 function Scrap:IterateJunk()
