@@ -588,7 +588,7 @@ function Scrap:AuctionJunkFilter(itemID)
 	local vendorauctionpricemultcap = 200
 	
 	--Check that there is an auction price, auction price minus deposit fee is greater than vendor price, and auction price is not a "kiddie-price(TM)(lul-lol9999goldforagraywoodenmacelevel1lul-lil)"
-	if value and auctionValue - (vendorValue * 0.15) > vendorValue and (auctionValue / vendorValue) < vendorauctionpricemultcap then
+	if value and auctionValue - (vendorValue * 0.15) > vendorValue and auctionValue - (vendorValue * 0.15) > 10000 and (auctionValue / vendorValue) < vendorauctionpricemultcap then
 		if itemType == STR_CLASS_TRADEGOODS then
 			if itemSubType == STR_SC_TRADEGOODS_HERB then
 				return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_ALCHEMY,STR_TS_INSCRIPTION}, auctionItemLevelCap)
@@ -616,6 +616,10 @@ function Scrap:AuctionJunkFilter(itemID)
 			end
 		elseif itemType == STR_CLASS_GEMS then
 			return self:NoProfessionsOrLowLevel(itemLevel, {STR_TS_JEWELCRAFTING}, auctionItemLevelCap) and self:LowLevel(itemLevel, 3)
+		elseif itemType == STR_CLASS_QUEST then
+			if itemID == 43297 then
+				return not self:HasProfession(STR_TS_JEWELCRAFTING)
+			end
 		end
 	end
 	
@@ -837,7 +841,14 @@ local CompactibleItemList = {
 	[37702] = {endItem = {id = 36860}, fullstackcompact = true, compactItemCount = 10},
 	[37703] = {endItem = {id = 35627}, fullstackcompact = true, compactItemCount = 10},
 	[37704] = {endItem = {id = 35625}, fullstackcompact = true, compactItemCount = 10},
-	[37705] = {endItem = {id = 35622}, fullstackcompact = true, compactItemCount = 10}
+	[37705] = {endItem = {id = 35622}, fullstackcompact = true, compactItemCount = 10},
+	[22573] = {endItem = {id = 22452}, fullstackcompact = false, compactItemCount = 10},
+	[22575] = {endItem = {id = 21886}, fullstackcompact = false, compactItemCount = 10},
+	[22574] = {endItem = {id = 21884}, fullstackcompact = false, compactItemCount = 10},
+	[22577] = {endItem = {id = 22456}, fullstackcompact = false, compactItemCount = 10},
+	[22572] = {endItem = {id = 22451}, fullstackcompact = false, compactItemCount = 10},
+	[22578] = {endItem = {id = 21885}, fullstackcompact = false, compactItemCount = 10},
+	[22576] = {endItem = {id = 22457}, fullstackcompact = false, compactItemCount = 10}
 }
 
 --Unreliable method to find an item in inventory by ID
