@@ -37,6 +37,8 @@ function core.SortBags(arg)
 	core.StartStacking()
 end
 
+local quest_item_loc = select(12, GetAuctionItemClasses())
+
 -- Sorting:
 local inventory_slots = {
 	INVTYPE_AMMO = 0,
@@ -112,9 +114,42 @@ local function default_sorter(a, b)
 	local a_id = bag_ids[a]
 	local b_id = bag_ids[b]
 	
-	local a_scrap, b_scrap, a_compactable, b_compactable
+	local a_scrap, b_scrap
+	--local a_compactable, b_compactable
+	local a_jvalue, b_jvalue
 	
 	if IsAddOnLoaded('Scrap') then
+		if a_id then
+			if Scrap:IsCompactable(a_id, bag_stacks[a]) then
+				a_jvalue = 4
+			elseif Scrap:IsJunk(a_id, bag_stacks[a]) then
+				a_jvalue = 3
+			elseif Scrap:IsExpensiveJunk(a_id, bag_stacks[a]) then
+				a_jvalue = 2
+			else
+				a_jvalue = 0
+			end
+			if Scrap:IsAuctionableJunk(a_id, bag_stacks[a]) then
+				a_jvalue = 1
+			end
+		end
+		if b_id then
+			if Scrap:IsCompactable(b_id, bag_stacks[b]) then
+				b_jvalue = 4
+			elseif Scrap:IsJunk(b_id, bag_stacks[b]) then
+				b_jvalue = 3
+			elseif Scrap:IsExpensiveJunk(b_id, bag_stacks[b]) then
+				b_jvalue = 2
+			else
+				b_jvalue = 0
+			end
+			if Scrap:IsAuctionableJunk(b_id, bag_stacks[b]) then
+				b_jvalue = 1
+			end
+		end
+	end
+	
+	--[[if IsAddOnLoaded('Scrap') then
 		if a_id then
 			a_scrap = Scrap:IsJunk(a_id)
 			a_compactable = Scrap:IsCompactable(a_id, bag_stacks[a])
@@ -123,7 +158,8 @@ local function default_sorter(a, b)
 			b_scrap = Scrap:IsJunk(b_id)
 			b_compactable = Scrap:IsCompactable(b_id, bag_stacks[b])
 		end
-	end
+	end--]]
+	
 	
 	-- is either slot empty?  If so, move it to the back.
 	if (not a_id) or (not b_id) then return a_id end
@@ -141,6 +177,10 @@ local function default_sorter(a, b)
 		end
 	end
 	
+	--Hearthstone to the start
+	if a_id == 6948 then return true end
+	if b_id == 6948 then return false end
+	
 	if IsAddOnLoaded('Scrap') then
 		if (b_compactable and not a_compactable) then return true end
 		if (a_compactable and not b_compactable) then return false end
@@ -152,14 +192,24 @@ local function default_sorter(a, b)
 		if bag_conjured[b] then return true end
 	end
 	
-	local a_name, _, a_rarity, a_level, a_minLevel, a_type, a_subType, a_stackCount, a_equipLoc, a_texture = GetItemInfo(a_id)
-	local b_name, _, b_rarity, b_level, b_minLevel, b_type, b_subType, b_stackCount, b_equipLoc, b_texture = GetItemInfo(b_id)
+	local a_name, _, a_rarity, a_level, a_minLevel, a_type, a_subType, a_stackCount, a_equipLoc, a_texture, a_value = GetItemInfo(a_id)
+	local b_name, _, b_rarity, b_level, b_minLevel, b_type, b_subType, b_stackCount, b_equipLoc, b_texture, b_value = GetItemInfo(b_id)
 	
 	-- junk to the back?
 	if core.db.junk then
+		--if IsAddOnLoaded('Scrap') then
+		--	if (b_scrap and not a_scrap) then return true end
+		--	if (a_scrap and not b_scrap) then return false end
 		if IsAddOnLoaded('Scrap') then
-			if (b_scrap and not a_scrap) then return true end
-			if (a_scrap and not b_scrap) then return false end
+			if a_jvalue > 0 or b_jvalue > 0 then
+				if b_jvalue ~= a_jvalue then
+					return a_jvalue < b_jvalue
+				else
+					if a_value ~= b_value then
+						return b_value < a_value
+					end
+				end
+			end
 		elseif not (a_rarity == b_rarity) then
 			if a_rarity == 0 then return false end
 			if b_rarity == 0 then return true end
@@ -174,6 +224,13 @@ local function default_sorter(a, b)
 	if core.db.soulbound and not bag_soulbound[a] == bag_soulbound[b] then
 		if bag_soulbound[a] then return true end
 		if bag_soulbound[b] then return false end
+	end
+	
+	--Quest Items to front
+	if a_type == quest_item_loc and b_type ~= quest_item_loc then
+		return true
+	elseif a_type ~= quest_item_loc and b_type == quest_item_loc then
+		return false
 	end
 	
 	-- are they the same type?

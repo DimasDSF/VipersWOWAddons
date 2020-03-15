@@ -17,6 +17,95 @@ You should have received a copy of the GNU General Public License
 along with Scrap Cleaner. If not, see <http://www.gnu.org/licenses/>.
 --]]
 
+local TrackingEnabled = false
+local TrackingFrame = CreateFrame('Frame')
+local NextTrackingChange = 0
+local CurTracking = 1
+local PreStartTracking = nil
+
+local function GetCurrentTrackingID()
+	local trackings = {}
+	for i=1,GetNumTrackingTypes() do
+		trackings[i] = select(2, GetTrackingInfo(i))
+	end
+	for i=1,#trackings do
+		if trackings[i] == GetTrackingTexture() then
+			return i
+		end
+	end
+	return nil
+end
+
+local function TrackerConditions()
+	if not TrackingEnabled then
+		return false
+	end
+	if UnitAffectingCombat('player') ~= nil then
+		return false
+	end
+	if IsInInstance() then
+		return false
+	end
+	if UnitIsDeadOrGhost("player") then
+		return false
+	end
+	if UnitCastingInfo("player") ~= nil then
+		return false
+	end
+	if UnitChannelInfo("player") ~= nil then
+		return false
+	end
+	if UnitIsAFK("player") then
+		return false
+	end
+	if IsResting() then
+		return false
+	end
+	return true
+end
+
+local function TickTracking()
+	local time = GetTime()
+	
+	if GetNetStats() ~= nil and (NextTrackingChange < time) and TrackerConditions() then
+		if CurTracking == 1 then
+			SetTracking(2)
+			CurTracking = 2
+		else
+			SetTracking(1)
+			CurTracking = 1
+		end
+		NextTrackingChange = time + 1.6 + (select(3, GetNetStats()) * 0.01)
+	end
+end
+
+SLASH_TRACKER1 = "/toggletracker"
+function SlashCmdList.TRACKER()
+	TrackingEnabled = not TrackingEnabled
+	local status = "nil"
+	if TrackingEnabled then
+		PreStartTracking = GetCurrentTrackingID()
+		status = "Enabled"
+		TrackingFrame:SetScript('OnUpdate', TickTracking)
+	else
+		status = "Disabled"
+		TrackingFrame:SetScript('OnUpdate', nil)
+		SetTracking(PreStartTracking)
+		PreStartTracking = nil
+	end
+	print(status, "Auto-Tracker.")
+end
+
+local NextSortTime = 0
+
+local function CheckSortBags()
+	local time = GetTime()
+	if GetNetStats() ~= nil and (NextSortTime < time) then
+		NextSortTime = time + 60
+		BankStack:SortBags()
+	end
+end
+
 local TimerFrame = CreateFrame('Frame')
 local NextTime = 0
 local Initialized = false
@@ -81,6 +170,7 @@ TimerFrame:SetScript("OnEvent", function(self,event)
 			NextTime = GetTime() + select(3, GetNetStats())*0.05
 			if not Initialized then
 				hooksecurefunc('MainMenuBarBackpackButton_UpdateFreeSlots', CleanTrash)
+				hooksecurefunc('ToggleBackpack', function() if IsResting() then CheckSortBags() end end)
 				Initialized = true
 			end
 		end

@@ -33,6 +33,15 @@ function ItemSlot:SetBorderQuality(...)
 		slot.scrapIcon = icon
 		return icon
 	end
+	local function CreateExpIcon(slot)
+		local icon = slot:CreateTexture(nil, 'OVERLAY')
+		icon:SetTexture('Interface\\MONEYFRAME\\UI-SilverIcon')
+		icon:SetPoint('TOPLEFT', 2, -2)
+		icon:SetSize(15, 15)
+
+		slot.scrapExpIcon = icon
+		return icon
+	end
 	local function CreateAucIcon(slot)
 		local icon = slot:CreateTexture(nil, 'OVERLAY')
 		icon:SetTexture('Interface\\MONEYFRAME\\UI-GoldIcon')
@@ -59,12 +68,14 @@ function ItemSlot:SetBorderQuality(...)
 		end
 	end
 	local icon = self.scrapIcon or CreateIcon(self)
+	local expIcon = self.scrapExpIcon or CreateExpIcon(self)
 	local aucIcon = self.scrapAucIcon or CreateAucIcon(self)
 	local stackIcon = self.scrapStackIcon or CreateStackIcon(self)
 	if link then
 		local id = tonumber(strmatch(link, 'item:(%d+)'))
 		SetShown(icon, Scrap:IsJunk(id))
-		SetShown(aucIcon, Scrap:IsAuctionableJunk(id))
+		SetShown(expIcon, Scrap:IsExpensiveJunk(id, self:GetBag(), self:GetID()))
+		SetShown(aucIcon, Scrap:IsAuctionableJunk(id, self:GetBag(), self:GetID()))
 		SetShown(stackIcon, Scrap:IsCompactable(id, stack))
 		if Scrap:IsJunk(id) then
 			self.questBorder:Hide()
@@ -74,6 +85,7 @@ function ItemSlot:SetBorderQuality(...)
 		end
 	else
 		SetShown(icon, false)
+		SetShown(expIcon, false)
 		SetShown(aucIcon, false)
 		SetShown(stackIcon, false)
 	end
